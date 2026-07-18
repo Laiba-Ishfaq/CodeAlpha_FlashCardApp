@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'models/flashcard.dart';
+import 'screens/home_screen.dart';
 import 'screens/list_screen.dart';
 import 'screens/study_screen.dart';
 import 'services/storage_service.dart';
@@ -37,6 +38,7 @@ class _HomeControllerState extends State<HomeController> {
   List<Flashcard> flashcards = [];
   bool isLoading = true;
   bool showingList = false;
+  bool showingStudy = false;
 
   @override
   void initState() {
@@ -128,9 +130,24 @@ class _HomeControllerState extends State<HomeController> {
       );
     }
 
-    return StudyScreen(
-      flashcards: flashcards,
-      onManage: () {
+    if (showingStudy) {
+      return StudyScreen(
+        flashcards: flashcards,
+        onManage: () {
+          setState(() {
+            showingList = true;
+          });
+        },
+      );
+    }
+
+    return HomeScreen(
+      onStudyExisting: () {
+        setState(() {
+          showingStudy = true;
+        });
+      },
+      onAddNew: () {
         setState(() {
           showingList = true;
         });

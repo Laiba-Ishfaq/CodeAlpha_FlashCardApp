@@ -4,7 +4,7 @@ class AppTheme {
   static const Color primary = Color(0xFF4A55A2);
   static const Color accent = Color(0xFFF5A623);
   static const Color background = Color(0xFFF7F8FC);
-  static const Color cardBackground = Color(0xFFFFFFFF);
+  static const Color cardBackground = Color(0xFF5E6DDD);
   static const Color textDark = Color(0xFF2E2E2E);
   static const Color textMuted = Color(0xFF8A8A8A);
   static const Color danger = Color(0xFFE57373);
