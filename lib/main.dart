@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'models/flashcard.dart';
 import 'screens/home_screen.dart';
@@ -46,7 +47,14 @@ class _HomeControllerState extends State<HomeController> {
     _loadFlashcards();
   }
 
+  Future<void> _markSeenIntro() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_intro', true);
+  }
+
   Future<void> _loadFlashcards() async {
+    final prefs = await SharedPreferences.getInstance();
+    final seenIntro = prefs.getBool('has_seen_intro') ?? false;
     final loadedFlashcards = await _storageService.loadFlashcards();
     if (!mounted) return;
 
@@ -58,27 +66,45 @@ class _HomeControllerState extends State<HomeController> {
                 question: 'What is Flutter?',
                 answer:
                     'Flutter is a UI toolkit for building natively compiled apps from a single codebase.',
+                favorite: true,
+                editCount: 0,
+                updatedAt: DateTime.now().toIso8601String(),
               ),
               Flashcard(
                 id: 'sample-2',
                 question: 'What does StatefulWidget do?',
                 answer:
                     'It lets a widget hold mutable state that can change over time.',
+                favorite: false,
+                editCount: 0,
+                updatedAt: DateTime.now().toIso8601String(),
               ),
               Flashcard(
                 id: 'sample-3',
                 question: 'What is a Widget in Flutter?',
                 answer:
                     'A widget is the basic building block of a Flutter user interface.',
+                favorite: false,
+                editCount: 0,
+                updatedAt: DateTime.now().toIso8601String(),
               ),
             ]
           : loadedFlashcards;
       isLoading = false;
+      if (seenIntro) {
+        showingStudy = true;
+      }
     });
   }
 
   Future<void> addFlashcard(Flashcard flashcard) async {
-    final updated = [...flashcards, flashcard];
+    final now = DateTime.now().toIso8601String();
+    final prepared = flashcard.copyWith(
+      favorite: flashcard.favorite,
+      editCount: 0,
+      updatedAt: now,
+    );
+    final updated = [...flashcards, prepared];
     setState(() {
       flashcards = updated;
     });
@@ -86,9 +112,20 @@ class _HomeControllerState extends State<HomeController> {
   }
 
   Future<void> editFlashcard(Flashcard updatedFlashcard) async {
+    final now = DateTime.now().toIso8601String();
     final updated = flashcards.map((flashcard) {
       if (flashcard.id == updatedFlashcard.id) {
-        return updatedFlashcard;
+        final questionChanged = flashcard.question != updatedFlashcard.question;
+        final answerChanged = flashcard.answer != updatedFlashcard.answer;
+        final shouldIncrement = questionChanged || answerChanged;
+
+        return updatedFlashcard.copyWith(
+          editCount: shouldIncrement
+              ? flashcard.editCount + 1
+              : flashcard.editCount,
+          updatedAt: shouldIncrement ? now : flashcard.updatedAt,
+          favorite: updatedFlashcard.favorite,
+        );
       }
       return flashcard;
     }).toList();
@@ -143,11 +180,13 @@ class _HomeControllerState extends State<HomeController> {
 
     return HomeScreen(
       onStudyExisting: () {
+        _markSeenIntro();
         setState(() {
           showingStudy = true;
         });
       },
       onAddNew: () {
+        _markSeenIntro();
         setState(() {
           showingList = true;
         });

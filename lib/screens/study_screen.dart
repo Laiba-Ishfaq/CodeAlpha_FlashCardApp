@@ -330,44 +330,60 @@ class _StudyScreenState extends State<StudyScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppTheme.textDark,
-                          backgroundColor: Colors.white,
-                          elevation: 2,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 520;
+                    final previousEnabled = currentIndex > 0;
+                    final nextEnabled = currentIndex < flashcards.length - 1;
+
+                    Widget buttonRow = Row(
+                      children: [
+                        Expanded(
+                          child: _buildNavButton(
+                            label: 'Previous',
+                            icon: Icons.arrow_back,
+                            onPressed: previousEnabled
+                                ? _showPreviousCard
+                                : null,
+                            isActive: previousEnabled,
                           ),
                         ),
-                        onPressed: currentIndex == 0 ? null : _showPreviousCard,
-                        icon: const Icon(Icons.arrow_back),
-                        label: const Text('Previous'),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppTheme.textDark,
-                          backgroundColor: Colors.white,
-                          elevation: 2,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildNavButton(
+                            label: 'Next',
+                            icon: Icons.arrow_forward,
+                            onPressed: nextEnabled ? _showNextCard : null,
+                            isActive: nextEnabled,
                           ),
                         ),
-                        onPressed: currentIndex >= flashcards.length - 1
-                            ? null
-                            : _showNextCard,
-                        icon: const Text('Next'),
-                        label: const Icon(Icons.arrow_forward),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+
+                    if (isNarrow) {
+                      return Column(
+                        children: [
+                          _buildNavButton(
+                            label: 'Previous',
+                            icon: Icons.arrow_back,
+                            onPressed: previousEnabled
+                                ? _showPreviousCard
+                                : null,
+                            isActive: previousEnabled,
+                          ),
+                          const SizedBox(height: 12),
+                          _buildNavButton(
+                            label: 'Next',
+                            icon: Icons.arrow_forward,
+                            onPressed: nextEnabled ? _showNextCard : null,
+                            isActive: nextEnabled,
+                          ),
+                        ],
+                      );
+                    }
+
+                    return buttonRow;
+                  },
                 ),
                 const SizedBox(height: 20),
                 Center(
@@ -400,7 +416,7 @@ class _StudyScreenState extends State<StudyScreen> {
         Text(
           artwork,
           style: TextStyle(
-            color: textColor.withValues(alpha: 235),
+            color: Colors.white.withAlpha(230),
             fontSize: 42,
             height: 1,
           ),
@@ -409,10 +425,10 @@ class _StudyScreenState extends State<StudyScreen> {
         if (subtitle != null) ...[
           Text(
             subtitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: AppTheme.textMuted,
+              color: Colors.white.withAlpha(200),
             ),
           ),
           const SizedBox(height: 10),
@@ -427,6 +443,38 @@ class _StudyScreenState extends State<StudyScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildNavButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+    required bool isActive,
+  }) {
+    final enabled = onPressed != null;
+    return ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: enabled
+            ? (isActive ? AppTheme.primary : Colors.white)
+            : Colors.white,
+        foregroundColor: enabled
+            ? (isActive ? Colors.white : AppTheme.textDark)
+            : AppTheme.textMuted,
+        elevation: enabled ? 4 : 0,
+        shadowColor: enabled
+            ? AppTheme.primary.withAlpha(80)
+            : Colors.transparent,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        side: BorderSide(
+          color: enabled ? AppTheme.primary : Colors.transparent,
+          width: enabled ? 1.2 : 0,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
     );
   }
 }
